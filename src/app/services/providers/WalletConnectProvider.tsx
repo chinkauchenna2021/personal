@@ -3,7 +3,7 @@
 import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/react'
 
 // 1. Get projectId at https://cloud.walletconnect.com
-const projectId = 'YOUR_PROJECT_ID'
+const projectId = String(process.env.NEXT_PUBLIC_PROJECTID)
 
 // 2. Set chains
 const mainnet = {
@@ -11,13 +11,13 @@ const mainnet = {
   name: 'Ethereum',
   currency: 'ETH',
   explorerUrl: 'https://etherscan.io',
-  rpcUrl: 'https://cloudflare-eth.com'
+  rpcUrl: 'https://mainnet.infura.io/v3/9be0c1e43bc94bdab3ed5ad6b398469b'
 }
 
 // 3. Create a metadata object
 const metadata = {
-  name: 'My Website',
-  description: 'My Website description',
+  name: 'Testing Project',
+  description: 'This project is for testing etherjs',
   url: 'https://mywebsite.com', // origin must match your domain & subdomain
   icons: ['https://avatars.mywebsite.com/']
 }
