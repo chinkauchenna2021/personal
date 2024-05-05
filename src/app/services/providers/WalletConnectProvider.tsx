@@ -11,14 +11,14 @@ const mainnet = {
   name: 'Ethereum',
   currency: 'ETH',
   explorerUrl: 'https://etherscan.io',
-  rpcUrl: 'https://mainnet.infura.io/v3/9be0c1e43bc94bdab3ed5ad6b398469b'
+  rpcUrl: String(process.env.NEXT_PUBLIC_INFURARPC)
 }
 
 // 3. Create a metadata object
 const metadata = {
   name: 'Testing Project',
   description: 'This project is for testing etherjs',
-  url: 'https://mywebsite.com', // origin must match your domain & subdomain
+  url: 'https://personal-wj0w.onrender.com', // origin must match your domain & subdomain
   icons: ['https://avatars.mywebsite.com/']
 }
 // 4. Create Ethers config
@@ -30,7 +30,7 @@ const ethersConfig = defaultConfig({
   enableEIP6963: true, // true by default
   enableInjected: true, // true by default
   enableCoinbase: true, // true by default
-  rpcUrl: '...', // used for the Coinbase SDK
+  rpcUrl: String(process.env.NEXT_PUBLIC_INFURARPC), // used for the Coinbase SDK
   defaultChainId: 1, // used for the Coinbase SDK
 })
 
