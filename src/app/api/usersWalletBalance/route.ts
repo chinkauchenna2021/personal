@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
         chain,
       });
 
-    return NextResponse.json(
+      console.log( tokenBalanceResponse, nativeChainBalanceResponse)
+    return  NextResponse.json(
       {
         message: "sent successfull",
         nativeTokenBalance: nativeChainBalanceResponse,
@@ -33,6 +34,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    return NextResponse.json({ message: "server error " });
+    return NextResponse.json({ message: "server error " , error });
   }
 }
